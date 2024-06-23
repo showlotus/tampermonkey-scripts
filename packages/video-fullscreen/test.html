@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      .copy-container {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        bottom: 20px;
+        width: 600px;
+        border: 1px dashed;
+      }
+
+      .screen-full {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <video controls width="250" class="target-video">
+      <source
+        src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm"
+        type="video/webm"
+      />
+
+      <source
+        src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+        type="video/mp4"
+      />
+    </video>
+    <br />
+    <button class="btn" style="font-size: 2rem">scale</button>
+    <!-- <button class="copy-btn" style="font-size: 2rem">distroy</button> -->
+
+    <div class="copy-container"></div>
+
+    <script>
+      const container = document.querySelector('.copy-container')
+      const targetVideo = document.querySelector('.target-video')
+      const btn = document.querySelector('.btn')
+
+      btn.addEventListener('click', () => {
+        const viewWidth = window.innerWidth
+        const viewHeight = window.innerHeight
+        const { left, top, width, height } = targetVideo.getBoundingClientRect()
+        const scaleRate = Math.max(width / viewWidth, height / viewHeight)
+
+        targetVideo.style.transform = `scale(${1 / scaleRate})`
+        targetVideo.style.transformOrigin = 'left top'
+        console.log(left, top, width, height, scaleRate)
+      })
+
+      const video = document.createElement('video')
+    </script>
+  </body>
+</html>
