@@ -86,7 +86,10 @@ const config: Config = {
       }
     }
   },
-  plugins: [tailwindAnimate]
+  plugins: [tailwindAnimate],
+  corePlugins: {
+    preflight: false
+  }
 }
 
 export default config
