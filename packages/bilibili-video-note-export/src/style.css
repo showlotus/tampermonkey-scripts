@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 自定义 bilibili 样式 */
+.note-pc .note-container .note-header {
+  min-height: 62px;
+}
+
+.note-pc .note-container .note-content.bilibili-video-note-export__after-note-export {
+  /* 60px 是笔记导出操作栏的高度 */
+  height: calc(100% - 62px - 60px);
+}
+
+.note-pc .note-container .note-up.note-detail-up {
+  margin-bottom: 0 !important;
+}
+
+.note-pc .note-container .editor-innter {
+  margin-top: 16px !important;
+}
