@@ -3,13 +3,10 @@ import './style.css'
 
 const APP_ID = 'tampermonkey-scripts-template'
 
-const createApp = (id = APP_ID) => {
+export const mount = () => {
   const app = document.createElement('div')
-  app.setAttribute('id', id)
-  return app
-}
+  app.setAttribute('id', APP_ID)
 
-function mount(app: HTMLElement) {
   const root = document.createElement('div')
   root.setAttribute(
     'class',
@@ -20,7 +17,7 @@ function mount(app: HTMLElement) {
   const button = document.createElement('button')
   button.setAttribute(
     'class',
-    'counter rounded-lg border border-[#3e3e3e] px-5 py-2.5 text-base font-medium font-inherit bg-[#1a1a1a] cursor-pointer transition-colors duration-250 hover:text-[#5384ed] hover:border-[#5384ed]'
+    'counter rounded-lg border border-[#3e3e3e] px-5 py-2.5 text-base font-medium font-inherit bg-[#1a1a1a] cursor-pointer transition-colors duration-250 hover:text-[#5384ed] hover:border-[#5384ed] border-solid'
   )
   root.appendChild(button)
 
@@ -29,4 +26,22 @@ function mount(app: HTMLElement) {
   setupCounter(button)
 }
 
-mount(createApp())
+export const unmount = () => {
+  const app = document.querySelector(`#${APP_ID}`)
+  if (app) {
+    app.remove()
+  }
+}
+
+// 初始化渲染
+mount()
+
+// 添加 HMR 支持
+if (import.meta.hot) {
+  import.meta.hot.accept(mod => {
+    // 卸载
+    mod?.unmount()
+    // 挂载
+    mod?.mount()
+  })
+}
