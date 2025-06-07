@@ -8,8 +8,8 @@
 }
 
 .note-pc .note-container .note-content.bilibili-video-note-export__after-note-export {
-  /* 60px 是笔记导出操作栏的高度 */
-  height: calc(100% - 62px - 60px);
+  /* 85px 是笔记导出操作栏的高度 */
+  height: calc(100% - 62px - 85px);
 }
 
 .note-pc .note-container .note-up.note-detail-up {
@@ -18,4 +18,66 @@
 
 .note-pc .note-container .editor-innter {
   margin-top: 16px !important;
+}
+
+.note-pc.is-exporting,
+.note-pc.is-copying {
+  height: auto !important;
+}
+
+.note-pc.is-exporting #bilibili-video-note-export__export-image,
+.note-pc.is-copying #bilibili-video-note-export__copy-image {
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: #00b5f6 !important;
+  color: #fff !important;
+}
+
+.note-pc.is-exporting #bilibili-video-note-export__export-image::after {
+  content: '导出中...';
+}
+
+.note-pc.is-copying #bilibili-video-note-export__copy-image::after {
+  content: '复制中...';
+}
+
+.note-pc.is-exporting .note-operation,
+.note-pc.is-copying .note-operation {
+  display: none !important;
+}
+
+.note-pc.is-exporting #bilibili-video-note-export > div,
+.note-pc.is-copying #bilibili-video-note-export > div {
+  position: relative;
+}
+
+.note-pc.is-exporting #bilibili-video-note-export > div::after,
+.note-pc.is-copying #bilibili-video-note-export > div::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 30%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    #00aeec 50%,
+    rgba(255, 255, 255, 0.2) 80%,
+    transparent 100%
+  );
+  animation: loading 1.75s ease-in-out infinite alternate;
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-50%);
+  }
+  50% {
+    transform: translateX(calc(85 / 30 * 100%));
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }

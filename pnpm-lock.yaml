@@ -16,6 +16,9 @@ importers:
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
+      modern-screenshot:
+        specifier: ^4.6.0
+        version: 4.6.0
       postcss:
         specifier: ^8.5.1
         version: 8.5.3
@@ -1606,6 +1609,9 @@ packages:
   minipass@7.1.2:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
+
+  modern-screenshot@4.6.0:
+    resolution: {integrity: sha512-L7osQAWpJiWY1ST1elhLRSGD5i7og5uoICqiXs38whAjWtIayp3cBMJmyML4iyJcBhRfHOyciq1g1Ft5G0QvSg==}
 
   mrmime@1.0.1:
     resolution: {integrity: sha512-hzzEagAgDyoU1Q6yg5uI+AorQgdvMCur3FcKf7NhMKWsaYg+RnbTyHRa/9IlLF9rf455MOCtcqqrQQ83pPP7Uw==}
@@ -3373,6 +3379,8 @@ snapshots:
       brace-expansion: 2.0.1
 
   minipass@7.1.2: {}
+
+  modern-screenshot@4.6.0: {}
 
   mrmime@1.0.1: {}
 

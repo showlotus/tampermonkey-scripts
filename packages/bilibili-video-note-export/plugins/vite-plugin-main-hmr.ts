@@ -26,11 +26,16 @@ export function vitePluginMainHmr(options: MainHmrOptions = {}): Plugin {
      * 转换代码，注入 HMR 逻辑
      */
     transform(code, id) {
-      // 只在开发环境处理
-      if (process.env.NODE_ENV === 'production') return
-
       // 只处理入口文件
       if (normalizePath(relative(process.cwd(), id)) !== normalizePath(entry)) return
+
+      // 在生产环境直接执行 mount 函数
+      if (process.env.NODE_ENV === 'production') {
+        return {
+          code: code + '\n' + `mount()`,
+          map: null
+        }
+      }
 
       // 检查是否已经有 HMR 代码
       if (code.includes('import.meta.hot.accept')) {

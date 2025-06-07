@@ -1,9 +1,13 @@
-import html2canvas from 'html2canvas'
 import { GM_getValue, GM_setValue } from '$'
-import { $, $$, logger, watchElementVisibility } from './utils'
+import {
+  $,
+  $$,
+  logger,
+  watchElementVisibility,
+  exportScreenshotToImage,
+  copyScreenshotToClipboard
+} from './utils'
 import './style.css'
-
-window.html2canvas = html2canvas
 
 // 挂载函数，返回清理函数
 export const mount = () => {
@@ -57,8 +61,9 @@ export const mount = () => {
         }
 
         root.innerHTML = /* html */ `
-          <div class="h-[60px] py-3 px-5 flex items-center justify-between box-border bg-white border-t border-b border-solid border-l-0 border-r-0 border-[#e3e5e7] text-sm">
+          <div class="h-[85px] py-3 px-5 flex flex-col justify-between gap-1 box-border bg-white border-t border-b border-solid border-l-0 border-r-0 border-[#e3e5e7] text-sm">
             <div class="flex gap-2">
+              <span>样式：</span>
               <div class="flex gap-2 items-center">
                 <input type="radio" id="bilibili-video-note-export__default-style" name="export-style" value="default" checked />
                 <label for="bilibili-video-note-export__default-style">默认样式</label>
@@ -72,8 +77,10 @@ export const mount = () => {
                 <label for="bilibili-video-note-export__include-author-info">包含发布者</label>
               </div>
             </div>
-            <div class="flex gap-2">
-              <div id="bilibili-video-note-export__export-image" class="py-1 px-3 border-[#00aeec] border-solid border rounded-md text-[#33ffff] cursor-pointer hover:bg-[#00b5f6] hover:border-transparent hover:text-white">导出图片</div>
+            <div class="flex items-center gap-2">
+              <span>操作：</span>
+              <div id="bilibili-video-note-export__copy-image" class="py-1 px-3 border-[#00aeec] border-solid border rounded-md text-[#00aeec] cursor-pointer hover:bg-[#00b5f6] hover:border-transparent hover:text-white after:content-[attr(data-text)]" data-text="复制为图片"></div>
+              <div id="bilibili-video-note-export__export-image" class="py-1 px-3 border-[#00aeec] border-solid border rounded-md text-[#00aeec] cursor-pointer hover:bg-[#00b5f6] hover:border-transparent hover:text-white after:content-[attr(data-text)]" data-text="导出为图片"></div>
             </div>
           </div>
         `
@@ -105,27 +112,24 @@ export const mount = () => {
           GM_setValue('include-author-info', target.checked)
         })
 
-        $('div#bilibili-video-note-export__export-image')!.addEventListener('click', () => {
-          // TODO 导出图片
-          logger.debug('导出图片')
-          logger.debug('导出样式:', GM_getValue('export-style', 'default'))
-          logger.debug('包含发布者:', GM_getValue('include-author-info', true))
+        // 复制为图片
+        $('div#bilibili-video-note-export__copy-image')!.addEventListener('click', async () => {
+          logger.debug('复制为图片')
+          $('div.note-pc')!.classList.add('is-copying')
+          await copyScreenshotToClipboard($('div.note-container div.note-content')!)
+          $('div.note-pc')!.classList.remove('is-copying')
+        })
 
-          // const canvas = await html2canvas(targetElement, {
-          //   // 可选配置
-          //   backgroundColor: null, // 保持透明背景
-          //   useCORS: true,         // 如果元素中有跨域图片
-          //   scale: 2,              // 提升分辨率
-          // })
+        // 导出为图片
+        $('div#bilibili-video-note-export__export-image')!.addEventListener('click', async () => {
+          logger.debug('导出为图片', {
+            exportStyle: GM_getValue('export-style', 'default'),
+            includeAuthorInfo: GM_getValue('include-author-info', true)
+          })
 
-          // const dataUrl = canvas.toDataURL('image/png')
-
-          // // 下载图片
-          // const link = document.createElement('a')
-          // link.href = dataUrl
-          // link.download = 'screenshot.png'
-          // link.click()
-          // logger.info('html2canvas', html2canvas)
+          $('div.note-pc')!.classList.add('is-exporting')
+          await exportScreenshotToImage($('div.note-container div.note-content')!)
+          $('div.note-pc')!.classList.remove('is-exporting')
         })
       } else {
         logger.debug('关闭笔记详情')
@@ -149,6 +153,8 @@ export const mount = () => {
     $('div.note-container div.note-content')?.classList.remove(
       'bilibili-video-note-export__after-note-export'
     )
+
+    $('div.note-pc')!.classList.remove('is-copying', 'is-exporting')
 
     // 移除 DOM 节点
     $(`div#${APP_ID}`)?.remove()

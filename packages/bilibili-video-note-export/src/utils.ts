@@ -1,3 +1,5 @@
+import { domToBlob, domToImage } from 'modern-screenshot'
+
 export const $ = (selector: string) => {
   return document.querySelector(selector) as HTMLElement | null
 }
@@ -103,4 +105,62 @@ export const watchElementVisibility = (
     intersectionObserver.disconnect()
     mutationObserver.disconnect()
   }
+}
+
+export const convertImagesToBase64 = async (el: HTMLElement): Promise<void> => {
+  const images = Array.from(el.querySelectorAll('img'))
+
+  for (const img of images) {
+    const src = img.src
+    img.removeAttribute('loading')
+
+    // 如果已经是 base64，跳过
+    if (src.startsWith('data:')) continue
+
+    try {
+      const response = await fetch(src, { mode: 'cors' })
+      const blob = await response.blob()
+
+      const base64: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+
+      // 如果 img 的父节点是 picture，把所有 source 的 srcset 也设置为 base64
+      if (img.parentElement && img.parentElement.tagName.toLowerCase() === 'picture') {
+        const sources = img.parentElement.querySelectorAll('source')
+        sources.forEach(source => source.setAttribute('srcset', base64))
+      }
+      img.src = base64
+    } catch (err) {
+      logger.warn(`无法转换图片为 base64：${src}`, err)
+    }
+  }
+}
+
+export const copyScreenshotToClipboard = async (el: HTMLElement): Promise<void> => {
+  await convertImagesToBase64(el)
+  const blob = await domToBlob(el, { type: 'image/png' })
+  const item = new ClipboardItem({ [blob.type]: blob })
+  await navigator.clipboard.write([item])
+  logger.info('图片已复制到剪贴板')
+}
+
+export const exportScreenshotToImage = async (el: HTMLElement): Promise<void> => {
+  await convertImagesToBase64(el)
+  return domToImage(el, {
+    debug: true,
+    progress: (current, total) => {
+      logger.debug(`${current}/${total}`)
+    }
+  }).then(img => {
+    const link = document.createElement('a')
+    link.download = document.title + '-笔记截图.png'
+    link.href = img.src
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  })
 }

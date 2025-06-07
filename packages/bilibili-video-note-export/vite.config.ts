@@ -2,11 +2,6 @@ import { defineConfig } from 'vite'
 import monkey, { cdn } from 'vite-plugin-monkey'
 import { vitePluginMainHmr } from './plugins/vite-plugin-main-hmr'
 
-console.log(
-  'html2canvas',
-  cdn.jsdelivr('html2canvas', 'dist/html2canvas.min.js')[1]('1.4.1', 'html2canvas')
-)
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -26,7 +21,7 @@ export default defineConfig({
       },
       build: {
         externalGlobals: {
-          html2canvas: cdn.jsdelivr('html2canvas', 'html2canvas@1.4.1/dist/html2canvas.min.js')
+          'modern-screenshot': cdn.jsdelivr('modernScreenshot', 'dist/index.js')
         }
       }
     })
