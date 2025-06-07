@@ -6,6 +6,22 @@ export const $$ = (selector: string) => {
   return document.querySelectorAll(selector)
 }
 
+export const logger = {
+  debug: (...args: any[]) => {
+    if (import.meta.env.PROD) return
+    console.debug('%c[bilibili-video-note-export]', 'color: #666', ...args)
+  },
+  info: (...args: any[]) => {
+    console.info('%c[bilibili-video-note-export]', 'color: #2196F3', ...args)
+  },
+  warn: (...args: any[]) => {
+    console.warn('%c[bilibili-video-note-export]', 'color: #FF9800', ...args)
+  },
+  error: (...args: any[]) => {
+    console.error('%c[bilibili-video-note-export]', 'color: #F44336', ...args)
+  }
+}
+
 /**
  * 防抖
  * @param fn 函数
@@ -34,68 +50,12 @@ export const debounce = <T extends (...args: any[]) => void>(fn: T, delay = 500)
 export const watchElementVisibility = (
   selector: string,
   callback: (isShow: boolean) => void,
-  options: { immediate?: boolean } = {}
+  options: { immediate?: boolean } = { immediate: true }
 ) => {
-  // 创建 IntersectionObserver 实例
-  let intersectionObserver: IntersectionObserver | null = null
-
-  let visible = false
-
-  const intersectionObserverCallback = (entries: IntersectionObserverEntry[]) => {
-    const entry = entries[0]
-    if (entry.isIntersecting) {
-      visible = true
-      callback(true)
-    } else if (!entry.isIntersecting) {
-      visible = false
-      callback(false)
-    }
+  const getEl = () => {
+    return typeof selector === 'string' ? document.querySelector(selector) : selector
   }
-  const mutationObserverCallback = () => {
-    // 如果已存在 observer，先断开连接
-    if (intersectionObserver) {
-      intersectionObserver.disconnect()
-    }
 
-    // 查找目标元素
-    const noteContainer = $(selector)
-    if (!noteContainer) {
-      return
-    }
-
-    // 创建新的 IntersectionObserver 实例
-    intersectionObserver = new IntersectionObserver(
-      options.immediate ? intersectionObserverCallback : debounce(intersectionObserverCallback),
-      {
-        // 当元素进入视口时触发
-        threshold: 0.01
-      }
-    )
-
-    // 开始观察元素可见性
-    intersectionObserver.observe(noteContainer)
-  }
-  // 创建 MutationObserver 实例
-  const observer = new MutationObserver(
-    options.immediate ? mutationObserverCallback : debounce(mutationObserverCallback)
-  )
-
-  // 开始观察文档变化
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  })
-
-  return () => {
-    observer.disconnect()
-    intersectionObserver?.disconnect()
-  }
-}
-
-export const watchElementVisibility2 = (
-  selector: string | HTMLElement,
-  callback: (isShow: boolean) => void
-) => {
   const intersectionObserver = new IntersectionObserver(
     entries => {
       const entry = entries[0]
@@ -112,16 +72,32 @@ export const watchElementVisibility2 = (
   )
 
   const mutationObserver = new MutationObserver(() => {
-    console.log('mutationObserver 12 00 1')
-    const el = typeof selector === 'string' ? document.querySelector(selector) : selector
+    const el = getEl()
     if (el) {
+      intersectionObserver.unobserve(el)
       intersectionObserver.observe(el)
     }
   })
+
   mutationObserver.observe(document.body, {
     childList: true,
     subtree: true
   })
+
+  // 检查元素是否已经在视口中
+  const el = getEl()
+  if (el && options.immediate) {
+    const rect = el.getBoundingClientRect()
+    const isVisible =
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+
+    if (isVisible) {
+      callback(true)
+    }
+  }
 
   return () => {
     intersectionObserver.disconnect()

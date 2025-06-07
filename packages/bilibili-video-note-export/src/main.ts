@@ -1,76 +1,29 @@
 import html2canvas from 'html2canvas'
-
-import { $, $$ } from './utils'
+import { GM_getValue, GM_setValue } from '$'
+import { $, $$, logger, watchElementVisibility } from './utils'
 import './style.css'
 
-const APP_ID = 'bilibili-video-note-export'
+window.html2canvas = html2canvas
 
-// window.html2canvas = html2canvas
-
-// 用于记录一些在 unmount 阶段执行的清理函数
-import.meta.hot!.data.unmount = []
-
-// 监听元素可见性
-const watchElementVisibility = (
-  selector: string | HTMLElement,
-  callback: (isShow: boolean) => void
-) => {
-  const intersectionObserver = new IntersectionObserver(
-    entries => {
-      const entry = entries[0]
-      if (entry.isIntersecting) {
-        callback(true)
-      } else {
-        callback(false)
-      }
-    },
-    {
-      // 当元素进入视口时触发
-      threshold: 0.01
-    }
-  )
-
-  const mutationObserver = new MutationObserver(() => {
-    const el = typeof selector === 'string' ? document.querySelector(selector) : selector
-    if (el) {
-      intersectionObserver.unobserve(el)
-      intersectionObserver.observe(el)
-    }
-  })
-  mutationObserver.observe(document.body, {
-    childList: true,
-    subtree: true
-  })
-
-  const clear = () => {
-    intersectionObserver.disconnect()
-    mutationObserver.disconnect()
-  }
-
-  import.meta.hot!.data.unmount.push(clear)
-
-  return clear
-}
-
-// 挂载
+// 挂载函数，返回清理函数
 export const mount = () => {
+  const APP_ID = 'bilibili-video-note-export'
   // 创建容器
   const root = document.createElement('div')
   root.setAttribute('id', APP_ID)
 
   let unwatchNoteDetail: (() => void) | undefined
   const unwatchNotePc = watchElementVisibility('div.note-pc', isNotePcShow => {
-    if (!isNotePcShow) return
-    console.log('打开笔记弹窗')
-    // 移除类名控制笔记内容高度
-    $('div.note-container div.note-content')?.classList.remove(
-      'bilibili-video-note-export__after-note-export'
-    )
+    if (!isNotePcShow) {
+      return
+    }
+    logger.debug('【笔记弹窗】打开')
+
     // 如果笔记详情已经监听，则不重复监听
     if (unwatchNoteDetail) return
     unwatchNoteDetail = watchElementVisibility('div.note-detail', noteDetailShow => {
       if (noteDetailShow) {
-        console.log('打开笔记详情')
+        logger.debug('【笔记详情】打开')
         const el = $(`div#${APP_ID}`)
         if (el) {
           // 显示容器
@@ -82,12 +35,24 @@ export const mount = () => {
           )
 
           // 设置 ql-editor 的 id，用于后续操作
-          $('div.note-container div.ql-editor')!.setAttribute(
+          $('div.note-container div.ql-editor')?.setAttribute(
             'id',
             'bilibili-video-note-export__ql-editor'
           )
 
-          // TODO 根据已记录的配置，设置 ql-editor 的样式
+          // 根据已记录的配置，设置 ql-editor 的样式
+          const exportStyle = GM_getValue('export-style', 'default') as 'default' | 'simple'
+          if (exportStyle === 'simple') {
+            $('div#bilibili-video-note-export__ql-editor')?.classList.remove('ql-editor')
+          } else {
+            $('div#bilibili-video-note-export__ql-editor')?.classList.add('ql-editor')
+          }
+          const includeAuthorInfo = GM_getValue('include-author-info', true)
+          if (includeAuthorInfo) {
+            $('div.note-container div.note-up.note-detail-up')!.style.display = 'flex'
+          } else {
+            $('div.note-container div.note-up.note-detail-up')!.style.display = 'none'
+          }
           return
         }
 
@@ -116,41 +81,54 @@ export const mount = () => {
         // 插入到笔记内容前面
         $('div.note-container')?.insertBefore(root, $('div.note-container div.note-content'))
 
-        // 添加事件
+        // 表单项发生变化时，记录值
+        // 记录导出样式
         $$('input[name="export-style"]').forEach((radio: Element) => {
           radio.addEventListener('change', (e: Event) => {
-            console.log('导出样式改变', (e.target as HTMLInputElement).value)
-            if ((e.target as HTMLInputElement).value === 'simple') {
+            const target = e.target as HTMLInputElement
+            if (target.value === 'simple') {
               $('div#bilibili-video-note-export__ql-editor')!.classList.remove('ql-editor')
             } else {
               $('div#bilibili-video-note-export__ql-editor')!.classList.add('ql-editor')
             }
+            GM_setValue('export-style', target.value)
           })
         })
+        // 记录是否包含发布者信息
         $('input[name="include-author-info"]')!.addEventListener('change', e => {
-          if ((e.target as HTMLInputElement).checked) {
+          const target = e.target as HTMLInputElement
+          if (target.checked) {
             $('div.note-container div.note-up.note-detail-up')!.style.display = 'flex'
           } else {
             $('div.note-container div.note-up.note-detail-up')!.style.display = 'none'
           }
-          console.log('包含发布者改变', (e.target as HTMLInputElement).checked)
+          GM_setValue('include-author-info', target.checked)
         })
 
         $('div#bilibili-video-note-export__export-image')!.addEventListener('click', () => {
-          console.log('导出图片')
+          // TODO 导出图片
+          logger.debug('导出图片')
+          logger.debug('导出样式:', GM_getValue('export-style', 'default'))
+          logger.debug('包含发布者:', GM_getValue('include-author-info', true))
 
-          // 获取选中的样式
-          const style = $('input[name="export-style"]:checked') as HTMLInputElement
-          console.log('导出样式:', style.value)
+          // const canvas = await html2canvas(targetElement, {
+          //   // 可选配置
+          //   backgroundColor: null, // 保持透明背景
+          //   useCORS: true,         // 如果元素中有跨域图片
+          //   scale: 2,              // 提升分辨率
+          // })
 
-          // 获取是否包含发布者信息
-          const includeAuthor = $('input[name="include-author-info"]') as HTMLInputElement
-          console.log('包含发布者:', includeAuthor.checked)
+          // const dataUrl = canvas.toDataURL('image/png')
 
-          console.log('html2canvas', html2canvas)
+          // // 下载图片
+          // const link = document.createElement('a')
+          // link.href = dataUrl
+          // link.download = 'screenshot.png'
+          // link.click()
+          // logger.info('html2canvas', html2canvas)
         })
       } else {
-        console.log('关闭笔记详情')
+        logger.debug('关闭笔记详情')
         $('div.note-container div.note-content')?.classList.remove(
           'bilibili-video-note-export__after-note-export'
         )
@@ -161,36 +139,22 @@ export const mount = () => {
         }
       }
     })
-    import.meta.hot!.data.unmount.push(unwatchNoteDetail)
-  })
-  import.meta.hot!.data.unmount.push(unwatchNotePc)
-}
-
-/**
- * 卸载
- *
- * - 移除新增的 DOM 节点或全局变量（DOM 节点与全局变量无论在哪个上下文中都可以获取得到，所以可以直接清理）
- * - 而对于一些在特定上下文中产生的变量，比如 `setTimeout` 返回的 `timerId` 或 `MutationObserver` 创建的实例，
- * - 在 `unmount` 中调用 `clearTimeout` 或 `ob.disconnect()` 是不会生效的，因为热更新后已经得到了一个新的上下文，
- * - 所以需要在 `import.meta.hot.data` 中记录这些副作用，然后在 `import.meta.hot.dispose` 中清理这些副作用
- */
-export function unmount() {
-  $(`div#${APP_ID}`)?.remove()
-}
-
-// 初始化渲染
-mount()
-
-// 添加 HMR 支持
-if (import.meta.hot) {
-  // 挂载
-  import.meta.hot.accept(mod => {
-    mod?.unmount()
-    mod?.mount()
   })
 
-  // 清理副作用
-  import.meta.hot.dispose(data => {
-    data.unmount.forEach((fn: (() => void) | undefined) => fn?.())
-  })
+  logger.info('插件运行中...')
+
+  // 返回清理函数
+  return () => {
+    // 移除类名控制笔记内容高度
+    $('div.note-container div.note-content')?.classList.remove(
+      'bilibili-video-note-export__after-note-export'
+    )
+
+    // 移除 DOM 节点
+    $(`div#${APP_ID}`)?.remove()
+
+    // 清理事件监听器
+    unwatchNotePc()
+    unwatchNoteDetail?.()
+  }
 }

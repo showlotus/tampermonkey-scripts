@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import monkey, { cdn } from 'vite-plugin-monkey'
+import { vitePluginMainHmr } from './plugins/vite-plugin-main-hmr'
 
 console.log(
   'html2canvas',
@@ -9,6 +10,9 @@ console.log(
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    vitePluginMainHmr({
+      entry: 'src/main.ts'
+    }),
     monkey({
       entry: 'src/main.ts',
       userscript: {
