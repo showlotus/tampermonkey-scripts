@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         显示 B 站视频发布日期
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.2.1
 // @description  The video release date of bilibili is displayed
 // @author       showlotus
 // @match        https://www.bilibili.com/video/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
+// @homepage     https://github.com/showlotus/tampermonkey-scripts/blob/main/packages/bilibili-release-date
+// @supportURL   https://github.com/showlotus/tampermonkey-scripts/issues
 // @grant        none
 // @run-at       document-end
 // @license      MIT
@@ -35,8 +37,9 @@
       if (n.hasAttribute('bvid')) return
       const bvid = n
         .querySelector('a')
-        .getAttribute('href')
-        .match(/video\/([^\/]+)/)?.[1]
+        ?.getAttribute('href')
+        ?.match(/video\/([^\/]+)/)?.[1]
+      if (!bvid) return
       n.setAttribute('bvid', bvid)
       const pubdate = await getPubdateByBvid(bvid)
       const pubdateDiv = document.createElement('div')
