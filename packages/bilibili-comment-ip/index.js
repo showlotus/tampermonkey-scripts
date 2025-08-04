@@ -19,75 +19,93 @@
   const logger = {
     info: (...args) => {
       console.info('%c[bilibili-comment-ip]', 'color: #2196F3', ...args)
+    },
+    warn: (...args) => {
+      console.warn('%c[bilibili-comment-ip]', 'color: #FF9800', ...args)
+    },
+    error: (...args) => {
+      console.error('%c[bilibili-comment-ip]', 'color: #F44336', ...args)
     }
   }
 
-  const unwatchList = []
+  logger.info('🚀 start...')
 
-  /**
-   * 获取页面中所有匹配选择器的元素，包括 Shadow DOM 内的元素
-   * @param {string} selector - CSS 选择器
-   * @param {HTMLElement|DocumentFragment} [root=document] - 搜索的根节点
-   * @returns {Array<HTMLElement>} 匹配的元素数组
-   */
-  function querySelectorAllDeep(selector, root = document) {
-    const result = []
+  const PROXY_URL_LIST = [
+    'api.bilibili.com/x/v2/reply/wbi/main',
+    'api.bilibili.com/x/v2/reply/reply'
+  ]
 
-    // 在普通 DOM 中查找
-    const lightDomMatches = root.querySelectorAll(selector)
-    lightDomMatches.forEach(el => result.push(el))
+  const isTargetUrl = url => {
+    return PROXY_URL_LIST.some(proxyUrl => url.includes(proxyUrl))
+  }
 
-    // 查找所有 Shadow DOM 宿主
-    const shadowHosts = root.querySelectorAll('*')
+  // 保存原始的 fetch 函数
+  const originalFetch = window.fetch
 
-    shadowHosts.forEach(host => {
-      if (host.shadowRoot) {
-        // 递归搜索 Shadow DOM
-        const shadowMatches = querySelectorAllDeep(selector, host.shadowRoot)
-        shadowMatches.forEach(el => result.push(el))
+  // 重写 fetch 函数
+  window.fetch = async function (input, init) {
+    // 安全地获取 URL
+    let url
+    try {
+      if (typeof input === 'string') {
+        url = input
+      } else if (input instanceof Request) {
+        url = input.url
+      } else if (input && input.url) {
+        url = input.url
+      } else {
+        // 如果无法获取 URL，直接使用原始 fetch
+        return originalFetch(input, init)
       }
-    })
-
-    return result
-  }
-
-  function injectCommentIP() {
-    logger.info('execution')
-
-    unwatchList.forEach(unwatch => unwatch())
-    unwatchList.length = 0
-
-    querySelectorAllDeep('bili-comment-replies-renderer').forEach(n => {
-      const unwatch = watchDomMutation(n.shadowRoot, injectCommentIP)
-      unwatchList.push(unwatch)
-    })
-
-    querySelectorAllDeep('bili-comment-action-buttons-renderer').forEach(n => {
-      const ip = n.__data.reply_control.location
-      const pubdateEl = n.shadowRoot.querySelector('#pubdate')
-
-      if (pubdateEl.hasAttribute('__has_ip')) return
-
-      pubdateEl.innerHTML += `&nbsp;&nbsp;${ip}`
-      pubdateEl.setAttribute('__has_ip', '')
-    })
-  }
-
-  function watchDomMutation(target, callback, options = { immediate: true }) {
-    options.immediate && callback()
-    const ob = new MutationObserver(callback)
-    ob.observe(target, {
-      childList: true,
-      subtree: true
-    })
-
-    return () => {
-      ob.disconnect()
+    } catch (error) {
+      logger.warn('⚠️ [Fetch] 无法解析请求 URL:', error)
+      return originalFetch(input, init)
     }
-  }
 
-  setTimeout(() => {
-    logger.info('start')
-    watchDomMutation(document.querySelector('#commentapp'), injectCommentIP)
-  }, 3000)
+    // 检查是否是目标 API
+    if (isTargetUrl(url)) {
+      logger.info('🚀 [Fetch] 拦截到 Bilibili 评论请求:', url)
+
+      try {
+        // 获取请求参数
+        const urlObj = new URL(url, window.location.origin)
+        const params = Object.fromEntries(urlObj.searchParams.entries())
+        logger.info('📋 [Fetch] 请求参数:', params)
+
+        // 发起原始请求
+        const response = await originalFetch(input, init)
+
+        // 克隆响应以便读取
+        const responseClone = response.clone()
+        const responseData = await responseClone.json()
+
+        logger.info('✅ [Fetch] 原始请求成功，返回真实数据')
+        logger.info('📊 [Fetch] 原始响应数据:', responseData)
+
+        // 修改响应数据
+        responseData?.data?.replies?.forEach(reply => {
+          reply.member.uname += ` <${reply.reply_control.location}>`
+
+          reply.replies?.forEach(rp => {
+            rp.member.uname += ` <${rp.reply_control.location}>`
+          })
+        })
+
+        logger.info('🔧 [Fetch] 修改后的响应数据:', responseData)
+
+        // 返回修改后的响应
+        return new Response(JSON.stringify(responseData), {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers
+        })
+      } catch (error) {
+        logger.error('❌ [Fetch] 原始请求失败:', error)
+        throw error
+      }
+    }
+
+    // 对于其他请求，使用原始的 fetch
+    return originalFetch(input, init)
+  }
 })()
