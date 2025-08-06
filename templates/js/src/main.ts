@@ -10,14 +10,14 @@ export const mount = () => {
   const root = document.createElement('div')
   root.setAttribute(
     'class',
-    'p-8 text-center rounded-2xl flex justify-center items-center fixed bottom-[70px] right-5 bg-black'
+    'p-8 text-center rounded-2xl flex justify-center items-center fixed bottom-[70px] right-5 bg-black border-[#5384ed] border-solid'
   )
   app.appendChild(root)
 
   const button = document.createElement('button')
   button.setAttribute(
     'class',
-    'counter rounded-lg border border-[#3e3e3e] px-5 py-2.5 text-base font-medium font-inherit bg-[#1a1a1a] cursor-pointer transition-colors duration-250 hover:text-[#5384ed] hover:border-[#5384ed] border-solid'
+    'counter rounded-lg border border-[#3e3e3e] px-5 py-2.5 text-base text-white font-medium font-inherit bg-[#1a1a1a] cursor-pointer transition-colors duration-250 hover:text-[#5384ed] hover:border-[#5384ed] border-solid'
   )
   root.appendChild(button)
 
