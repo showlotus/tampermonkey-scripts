@@ -12,7 +12,7 @@ export default defineConfig({
       entry: 'src/main.ts',
       userscript: {
         icon: 'https://vitejs.dev/logo.svg',
-        namespace: 'tampermonkey-scripts-template',
+        namespace: 'tampermonkey-scripts-template-vue',
         match: ['https://www.google.com/']
       },
       build: {

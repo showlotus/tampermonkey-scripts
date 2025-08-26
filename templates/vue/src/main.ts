@@ -5,8 +5,8 @@ import './style.css'
 createApp(App).mount(
   (() => {
     const app = document.createElement('div')
-    app.setAttribute('id', 'tampermonkey-scripts-template')
-    document.body.append(app)
+    app.setAttribute('id', 'tampermonkey-scripts-template-vue')
+    document.body.appendChild(app)
     return app
   })()
 )

@@ -3,7 +3,7 @@ import type { Config } from 'tailwindcss'
 const config: Config = {
   darkMode: ['class'],
   // 添加样式命名空间，避免样式冲突
-  important: '#tampermonkey-scripts-template-react',
+  important: '#bilibili-video-note-export-v2',
   content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     container: {},

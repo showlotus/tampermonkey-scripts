@@ -1,5 +1,5 @@
 {
-  "name": "tampermonkey-scripts-template",
+  "name": "tampermonkey-scripts-template-js",
   "private": true,
   "version": "0.0.0",
   "type": "module",

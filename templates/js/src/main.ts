@@ -1,7 +1,7 @@
 import { setupCounter } from './counter'
 import './style.css'
 
-const APP_ID = 'tampermonkey-scripts-template'
+const APP_ID = 'tampermonkey-scripts-template-js'
 
 export const mount = () => {
   const app = document.createElement('div')
@@ -21,7 +21,7 @@ export const mount = () => {
   )
   root.appendChild(button)
 
-  document.body.append(app)
+  document.body.appendChild(app)
 
   setupCounter(button)
 }

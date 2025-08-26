@@ -6,7 +6,7 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <div className="flex flex-col gap-4 p-8 text-center rounded-2xl flex justify-center items-center fixed bottom-[70px] right-5 bg-black border-[#5384ed] border-solid">
+    <div className="flex flex-col justify-center items-center gap-4 p-8 text-center rounded-2xl fixed bottom-[70px] right-5 bg-black border-[#5384ed] border-solid">
       <div className="flex items-center gap-4">
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

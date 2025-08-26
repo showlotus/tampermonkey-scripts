@@ -1,0 +1,16 @@
+{
+  "name": "@tampermonkey-scripts/utils",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && vite build --mode development",
+    "dev": "vite build --mode development --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  }
+}

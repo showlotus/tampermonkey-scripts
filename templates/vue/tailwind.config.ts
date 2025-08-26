@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss'
 
 const config: Config = {
   darkMode: 'class',
-  // important: '#tampermonkey-scripts-template',
+  // important: '#tampermonkey-scripts-template-vue',
   content: ['./src/**/*.{vue,js,ts,jsx,tsx,css}'],
   theme: {
     container: {},

@@ -6,7 +6,7 @@ import './index.css'
 ReactDOM.createRoot(
   (() => {
     const app = document.createElement('div')
-    app.setAttribute('id', 'tampermonkey-scripts-template-react')
+    app.setAttribute('id', 'bilibili-video-note-export-v2')
     document.body.appendChild(app)
     return app
   })()

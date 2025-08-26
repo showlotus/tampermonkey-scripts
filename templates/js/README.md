@@ -1,1 +1,1 @@
-# tampermonkey-scripts-template
+# tampermonkey-scripts-template-js

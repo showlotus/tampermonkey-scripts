@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import monkey, { cdn } from 'vite-plugin-monkey'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,7 +11,7 @@ export default defineConfig({
       entry: 'src/main.tsx',
       userscript: {
         icon: 'https://vitejs.dev/logo.svg',
-        namespace: 'tampermonkey-scripts-template-react',
+        namespace: 'bilibili-video-note-export-v2',
         match: ['https://www.google.com/']
       },
       build: {
@@ -20,5 +21,10 @@ export default defineConfig({
         }
       }
     })
-  ]
+  ],
+  resolve: {
+    alias: {
+      '@tampermonkey-scripts/utils': path.resolve(__dirname, '../utils/index.ts')
+    }
+  }
 })
