@@ -1,5 +1,6 @@
 import { LitElement, css, html } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
+import normalizeWheel from 'normalize-wheel'
 
 /**
  * 全屏容器组件
@@ -13,13 +14,11 @@ export class PeekFullscreen extends LitElement {
   @state()
   private scale = 1
   private initialScale = 1
-  private minScale = 1
-  private maxScale = 1
-  private currentImageSize = { width: 0, height: 0 }
+  private minScale = 0.1 // 最小缩放比例
+  private maxScale = 5 // 最大缩放比例
 
   // 保存原始样式
   private originalStyles: Map<string, string> = new Map()
-  private originalParentStyles: Map<string, string> = new Map()
   private originalScrollbarWidth: number = 0
   private originalBodyStyles: Partial<CSSStyleDeclaration> = {}
   private mediaWrapper: HTMLElement | null = null
@@ -65,7 +64,7 @@ export class PeekFullscreen extends LitElement {
       max-width: 100vw;
       max-height: 100vh;
       object-fit: contain;
-      transition: transform 0.1s ease-out;
+      transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
       will-change: transform;
       transform-origin: center center;
     }
@@ -142,19 +141,13 @@ export class PeekFullscreen extends LitElement {
     const heightScale = viewportHeight / imgHeight
     this.initialScale = Math.min(widthScale, heightScale)
 
-    // 设置最小和最大缩放比例
-    this.minScale = this.initialScale
-    this.maxScale = Math.min(
-      2, // 最大放大 2 倍
-      viewportWidth / (imgWidth * this.initialScale), // 不超过屏幕宽度
-      viewportHeight / (imgHeight * this.initialScale) // 不超过屏幕高度
-    )
+    // 设置最小缩放比例为 1（原始大小）
+    this.minScale = 1
 
-    // 保存当前图片尺寸
-    this.currentImageSize = {
-      width: imgWidth * this.initialScale,
-      height: imgHeight * this.initialScale
-    }
+    // 计算最大缩放比例（不超出视口）
+    const maxWidthScale = viewportWidth / imgWidth // 宽度最大缩放比例
+    const maxHeightScale = viewportHeight / imgHeight // 高度最大缩放比例
+    this.maxScale = Math.min(maxWidthScale, maxHeightScale) // 取较小值，确保不会超出视口
 
     // 设置初始缩放
     this.scale = this.initialScale
@@ -171,10 +164,36 @@ export class PeekFullscreen extends LitElement {
     e.stopPropagation()
     e.preventDefault()
 
-    // 计算新的缩放比例
-    const delta = -Math.sign(e.deltaY) * 0.1
-    const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.scale + delta))
+    // 获取标准化的滚轮事件数据
+    const { pixelY, spinY } = normalizeWheel(e)
 
+    // 如果没有滚动，不处理
+    if (pixelY === 0 && spinY === 0) return
+
+    // 使用 spinY 和 pixelY 的组合来计算缩放
+    const baseZoomFactor = 1.05 // 基础缩放因子（更小以实现更细腻的控制）
+
+    // 计算滚动强度
+    const spinStrength = Math.abs(spinY) * 0.008 // spinY 的权重
+    const pixelStrength = Math.abs(pixelY) * 0.0001 // pixelY 的权重
+    const scrollStrength = Math.min(spinStrength + pixelStrength, 0.2) // 限制最大强度
+
+    // 计算最终的缩放因子
+    const zoomFactor = baseZoomFactor + scrollStrength
+
+    // 使用 easeOutQuad 缓动函数使缩放更平滑
+    const easeOutQuad = (t: number) => t * (2 - t)
+    const smoothZoomFactor = 1 + easeOutQuad(zoomFactor - 1)
+
+    // 根据滚动方向决定是放大还是缩小
+    const direction = (pixelY || spinY) > 0 ? -1 : 1
+    const scaleFactor = Math.pow(smoothZoomFactor, direction)
+
+    // 计算新的缩放比例，并确保在限制范围内
+    const targetScale = this.scale * scaleFactor
+    const newScale = Math.max(this.minScale, Math.min(this.maxScale, targetScale))
+
+    // 只有当缩放比例发生变化时才更新
     if (newScale !== this.scale) {
       this.scale = newScale
       this._updateImageTransform()
@@ -186,9 +205,11 @@ export class PeekFullscreen extends LitElement {
    */
   private _updateImageTransform() {
     const img = this.renderRoot?.querySelector('img')
-    if (img) {
-      img.style.transform = `scale(${this.scale})`
-    }
+    if (!img) return
+
+    // 应用变换
+    img.style.transform = `scale(${this.scale})`
+    img.style.transformOrigin = 'center center'
   }
 
   /**
@@ -261,10 +282,7 @@ export class PeekFullscreen extends LitElement {
    * 保存原始样式
    */
   private _saveOriginalStyles() {
-    if (!this.media) return
-
-    // 保存媒体元素的样式
-    const computedStyle = window.getComputedStyle(this.media)
+    if (!this.media) return // 保存媒体元素的样式
     ;[
       'position',
       'top',

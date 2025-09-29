@@ -20,5 +20,8 @@
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
     "vite-plugin-monkey": "^7.1.4"
+  },
+  "dependencies": {
+    "normalize-wheel": "^1.0.1"
   }
 }

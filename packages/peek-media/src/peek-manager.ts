@@ -35,80 +35,108 @@ export class PeekManager extends EventTarget {
   }
 
   /**
+   * 查找目标媒体元素
+   */
+  private findTargetMedia(elements: Element[]): HTMLElement | null {
+    // 过滤出所有媒体元素
+    const mediaElements = elements.filter(
+      el => el instanceof HTMLImageElement || el instanceof HTMLVideoElement
+    ) as HTMLElement[]
+
+    if (mediaElements.length === 0) return null
+    if (mediaElements.length === 1) return mediaElements[0]
+
+    // 如果有多个媒体元素，使用以下规则按优先级筛选
+    return (
+      mediaElements.find(media => {
+        // 1. 检查尺寸是否符合要求
+        if (!this.isMediaSizeValid(media)) return false
+
+        // 2. 检查可见性
+        const style = window.getComputedStyle(media)
+        if (style.display === 'none' || style.visibility === 'hidden') return false
+
+        // 3. 检查是否为装饰性媒体
+        if (media.dataset.isDecorative === 'true') return false
+
+        // 4. 检查媒体是否有效
+        if (media instanceof HTMLImageElement) {
+          if (!media.complete || !media.naturalWidth) return false
+        } else if (media instanceof HTMLVideoElement) {
+          // 视频元素特殊检查
+          if (media.readyState === 0) return false // HAVE_NOTHING
+          if (media.videoWidth === 0 || media.videoHeight === 0) return false
+        }
+
+        return true
+      }) || mediaElements[0] // 如果没有符合条件的，返回最上层的媒体元素
+    )
+  }
+
+  /**
    * 初始化事件监听
    */
   private initEventListeners() {
-    // 事件委托处理鼠标移入
-    document.addEventListener('mouseover', e => {
-      const target = e.target as HTMLElement
-      if (this.isMediaElement(target) && this.isMediaSizeValid(target)) {
-        this.handleMediaHover(target)
-      }
-    })
+    // 使用节流函数处理鼠标移动
+    const handleMouseMove = createThrottledFunction((e: MouseEvent) => {
+      // 获取鼠标位置下的所有元素
+      const elements = document.elementsFromPoint(e.clientX, e.clientY)
+      const targetMedia = this.findTargetMedia(elements)
 
-    // 处理鼠标移出
-    document.addEventListener('mouseout', e => {
-      const target = e.target as HTMLElement
-      const relatedTarget = e.relatedTarget as HTMLElement
-
-      if (
-        this.isMediaElement(target) &&
-        (!relatedTarget || !this.isToolbarElement(relatedTarget))
+      // 如果找到有效的媒体元素
+      if (targetMedia && this.isMediaSizeValid(targetMedia)) {
+        this.handleMediaHover(targetMedia)
+      } else if (
+        // 如果鼠标不在当前媒体元素或工具栏上，隐藏工具栏
+        this.currentMedia &&
+        !elements.includes(this.currentMedia) &&
+        !elements.some(el => this.isToolbarElement(el as HTMLElement))
       ) {
         this.handleMediaLeave()
       }
-    })
+    }, 30) // 30ms 的节流时间
 
-    // 处理鼠标移动
-    document.addEventListener(
-      'mousemove',
-      e => {
-        if (this.currentMedia && this.toolbar) {
-          // 检查当前媒体元素是否仍然满足尺寸要求
-          if (!this.isMediaSizeValid(this.currentMedia)) {
-            this.handleMediaLeave()
-            return
-          }
-          this.updateToolbarPosition(this.currentMedia)
-        }
-      },
-      { passive: true }
-    )
+    // 监听鼠标移动事件
+    document.addEventListener('mousemove', handleMouseMove, { passive: true })
 
-    // 处理滚动时更新工具栏位置
-    window.addEventListener(
-      'scroll',
-      () => {
-        if (this.currentMedia && this.toolbar) {
-          // 检查当前媒体元素是否仍然满足尺寸要求
-          if (!this.isMediaSizeValid(this.currentMedia)) {
-            this.handleMediaLeave()
-            return
-          }
-          this.updateToolbarPosition(this.currentMedia)
-        }
-      },
-      { passive: true }
-    )
+    // 使用节流函数处理滚动和窗口大小变化
+    const handleViewportChange = createThrottledFunction(() => {
+      if (!this.currentMedia || !this.toolbar) return
 
-    // 处理窗口大小变化
-    window.addEventListener('resize', () => {
-      if (this.currentMedia && this.toolbar) {
-        // 检查当前媒体元素是否仍然满足尺寸要求
-        if (!this.isMediaSizeValid(this.currentMedia)) {
-          this.handleMediaLeave()
-          return
-        }
-        this.updateToolbarPosition(this.currentMedia)
+      // 检查当前图片是否仍然可见
+      const rect = this.currentMedia.getBoundingClientRect()
+      if (
+        rect.right < 0 ||
+        rect.bottom < 0 ||
+        rect.left > window.innerWidth ||
+        rect.top > window.innerHeight ||
+        !this.isMediaSizeValid(this.currentMedia)
+      ) {
+        this.handleMediaLeave()
+        return
       }
-    })
+
+      // 更新工具栏位置
+      this.updateToolbarPosition(this.currentMedia)
+    }, 60) // 60ms 的节流时间，因为视口变化不需要太频繁的更新
+
+    // 监听滚动和窗口大小变化
+    window.addEventListener('scroll', handleViewportChange, { passive: true })
+    window.addEventListener('resize', handleViewportChange)
   }
 
   /**
    * 判断是否为媒体元素
    */
   private isMediaElement(element: HTMLElement): boolean {
-    return element instanceof HTMLImageElement || element instanceof HTMLVideoElement
+    if (element instanceof HTMLImageElement) {
+      return true
+    }
+    if (element instanceof HTMLVideoElement) {
+      // 检查视频是否有效
+      return element.readyState > 0 && element.videoWidth > 0 && element.videoHeight > 0
+    }
+    return false
   }
 
   /**
