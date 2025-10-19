@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         显示 B 站视频在线人数排名
+// @name         添加 B 站在线人数排名入口
 // @namespace    http://tampermonkey.net/
-// @version      0.1.0
-// @description  The video online rank of bilibili is displayed
+// @version      0.1.2
+// @description  Add the online rank entry to the Bilibili homepage
 // @author       showlotus
-// @match        https://www.bilibili.com/
+// @match        https://www.bilibili.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
 // @homepage     https://github.com/showlotus/tampermonkey-scripts/blob/main/packages/bilibili-online-rank
 // @supportURL   https://github.com/showlotus/tampermonkey-scripts/issues
