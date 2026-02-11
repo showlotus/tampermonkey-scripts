@@ -1,7 +1,7 @@
 import { LitElement, css, html, unsafeCSS } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import litLogo from './assets/lit.svg'
-import viteLogo from '/vite.svg'
+import viteLogo from './assets/vite.svg'
 import tailwindStyles from './tailwind.generated.css?inline'
 
 /**
@@ -16,7 +16,7 @@ export class MyElementLit extends LitElement {
    * The number of times the button has been clicked.
    */
   @property({ type: Number })
-  count = 0
+  count = 1
 
   render() {
     return html`
@@ -45,7 +45,7 @@ export class MyElementLit extends LitElement {
   }
 
   private _onClick() {
-    this.count++
+    this.count += 1
   }
 
   static styles = [
