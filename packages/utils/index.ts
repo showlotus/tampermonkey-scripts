@@ -7,12 +7,13 @@ export const $$ = (selector: string) => {
 }
 
 export class Logger {
-  constructor(private readonly name: string) {
-    this.name = name
-  }
+  constructor(
+    private readonly name: string,
+    private readonly debugEnabled = false
+  ) {}
 
   debug(...args: any[]) {
-    if (import.meta.env.PROD) return
+    if (!this.debugEnabled) return
     console.log(`%c[${this.name}]`, 'color: #666', ...args)
   }
 
