@@ -4,7 +4,8 @@
   "description": "Some Tampermonkey Scripts",
   "main": "index.js",
   "scripts": {
-    "new": "node scripts/createNewScript.js"
+    "new": "node scripts/createNewScript.js",
+    "typecheck": "pnpm -r run typecheck"
   },
   "keywords": [
     "tampermonkey",

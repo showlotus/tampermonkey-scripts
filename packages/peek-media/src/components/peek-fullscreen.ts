@@ -1,5 +1,5 @@
 import { LitElement, css, html } from 'lit'
-import { customElement, property, state } from 'lit/decorators.js'
+import { customElement, property } from 'lit/decorators.js'
 import normalizeWheel from 'normalize-wheel'
 
 /**
@@ -11,16 +11,23 @@ export class PeekFullscreen extends LitElement {
   media: HTMLImageElement | HTMLVideoElement | null = null
 
   // 图片缩放状态
-  @state()
   private scale = 1
-  private initialScale = 1
-  private minScale = 0.1 // 最小缩放比例
+  private fitScale = 1
+  private minScale = 1 // 最小缩放比例
   private maxScale = 5 // 最大缩放比例
+  private tx = 0 // 水平平移偏移
+  private ty = 0 // 垂直平移偏移
+
+  // 图片拖拽状态
+  private dragging = false
+  private dragStartX = 0
+  private dragStartY = 0
 
   // 保存原始样式
   private originalStyles: Map<string, string> = new Map()
   private originalScrollbarWidth: number = 0
   private originalBodyStyles: Partial<CSSStyleDeclaration> = {}
+  private originalVideoControls = false
   private mediaWrapper: HTMLElement | null = null
   private originalVideoParent: HTMLElement | null = null
   private originalVideoNextSibling: Node | null = null
@@ -61,12 +68,20 @@ export class PeekFullscreen extends LitElement {
     }
 
     .media-container img {
-      max-width: 100vw;
-      max-height: 100vh;
-      object-fit: contain;
+      max-width: none;
+      max-height: none;
       transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
       will-change: transform;
       transform-origin: center center;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      cursor: grab;
+    }
+
+    .media-container img.dragging {
+      transition: none;
+      cursor: grabbing;
     }
 
     .close {
@@ -111,6 +126,8 @@ export class PeekFullscreen extends LitElement {
         }
       }
     }
+
+    this._notifyFullscreenState(true)
   }
 
   disconnectedCallback() {
@@ -122,6 +139,15 @@ export class PeekFullscreen extends LitElement {
     if (this.media) {
       this._restoreOriginalStyles()
     }
+
+    this._notifyFullscreenState(false)
+  }
+
+  /**
+   * 通知管理器全屏状态变化
+   */
+  private _notifyFullscreenState(active: boolean) {
+    document.dispatchEvent(new CustomEvent('peek-fullscreen-change', { detail: { active } }))
   }
 
   /**
@@ -133,24 +159,22 @@ export class PeekFullscreen extends LitElement {
     // 获取图片原始尺寸
     const imgWidth = this.media.naturalWidth
     const imgHeight = this.media.naturalHeight
+    if (!imgWidth || !imgHeight) return
 
-    // 计算初始缩放比例（适应屏幕）
+    // 计算适屏缩放比例（不放大小图）
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-    const widthScale = viewportWidth / imgWidth
-    const heightScale = viewportHeight / imgHeight
-    this.initialScale = Math.min(widthScale, heightScale)
+    const rawFit = Math.min(viewportWidth / imgWidth, viewportHeight / imgHeight)
+    this.fitScale = Math.min(rawFit, 1)
 
-    // 设置最小缩放比例为 1（原始大小）
-    this.minScale = 1
+    // 最小为适屏大小，最大为自然大小与适屏中较大者的 4 倍
+    this.minScale = this.fitScale
+    this.maxScale = Math.max(rawFit, 1) * 4
 
-    // 计算最大缩放比例（不超出视口）
-    const maxWidthScale = viewportWidth / imgWidth // 宽度最大缩放比例
-    const maxHeightScale = viewportHeight / imgHeight // 高度最大缩放比例
-    this.maxScale = Math.min(maxWidthScale, maxHeightScale) // 取较小值，确保不会超出视口
-
-    // 设置初始缩放
-    this.scale = this.initialScale
+    // 重置缩放与平移
+    this.scale = this.fitScale
+    this.tx = 0
+    this.ty = 0
     this._updateImageTransform()
   }
 
@@ -189,15 +213,44 @@ export class PeekFullscreen extends LitElement {
     const direction = (pixelY || spinY) > 0 ? -1 : 1
     const scaleFactor = Math.pow(smoothZoomFactor, direction)
 
-    // 计算新的缩放比例，并确保在限制范围内
-    const targetScale = this.scale * scaleFactor
-    const newScale = Math.max(this.minScale, Math.min(this.maxScale, targetScale))
+    // 以鼠标位置为锚点进行缩放
+    this._zoomAt(e.clientX, e.clientY, this.scale * scaleFactor)
+  }
 
-    // 只有当缩放比例发生变化时才更新
-    if (newScale !== this.scale) {
-      this.scale = newScale
-      this._updateImageTransform()
-    }
+  /**
+   * 以指定视口坐标为锚点缩放图片
+   */
+  private _zoomAt(clientX: number, clientY: number, targetScale: number) {
+    const newScale = Math.max(this.minScale, Math.min(this.maxScale, targetScale))
+    if (newScale === this.scale) return
+
+    const container = this.renderRoot?.querySelector('.media-container')
+    if (!container) return
+
+    // 计算锚点相对于容器中心的位置，保持该点在缩放前后不动
+    const rect = container.getBoundingClientRect()
+    const dx = clientX - (rect.left + rect.width / 2)
+    const dy = clientY - (rect.top + rect.height / 2)
+    const ratio = newScale / this.scale
+    this.tx = dx - (dx - this.tx) * ratio
+    this.ty = dy - (dy - this.ty) * ratio
+    this.scale = newScale
+    this._clampPan()
+    this._updateImageTransform()
+  }
+
+  /**
+   * 限制平移范围，避免图片被拖出视口
+   */
+  private _clampPan() {
+    if (!(this.media instanceof HTMLImageElement)) return
+
+    const displayedWidth = this.media.naturalWidth * this.scale
+    const displayedHeight = this.media.naturalHeight * this.scale
+    const maxX = Math.max(0, (displayedWidth - window.innerWidth) / 2)
+    const maxY = Math.max(0, (displayedHeight - window.innerHeight) / 2)
+    this.tx = Math.min(maxX, Math.max(-maxX, this.tx))
+    this.ty = Math.min(maxY, Math.max(-maxY, this.ty))
   }
 
   /**
@@ -208,8 +261,60 @@ export class PeekFullscreen extends LitElement {
     if (!img) return
 
     // 应用变换
-    img.style.transform = `scale(${this.scale})`
-    img.style.transformOrigin = 'center center'
+    img.style.transform = `translate(${this.tx}px, ${this.ty}px) scale(${this.scale})`
+  }
+
+  /**
+   * 处理图片拖拽开始
+   */
+  private _onPointerDown = (e: PointerEvent) => {
+    this.dragging = true
+    this.dragStartX = e.clientX - this.tx
+    this.dragStartY = e.clientY - this.ty
+    const img = e.currentTarget as HTMLElement
+    img.classList.add('dragging')
+    img.setPointerCapture(e.pointerId)
+  }
+
+  /**
+   * 处理图片拖拽移动
+   */
+  private _onPointerMove = (e: PointerEvent) => {
+    if (!this.dragging) return
+
+    this.tx = e.clientX - this.dragStartX
+    this.ty = e.clientY - this.dragStartY
+    this._clampPan()
+    this._updateImageTransform()
+  }
+
+  /**
+   * 处理图片拖拽结束
+   */
+  private _onPointerUp = (e: PointerEvent) => {
+    if (!this.dragging) return
+
+    this.dragging = false
+    const img = e.currentTarget as HTMLElement
+    img.classList.remove('dragging')
+  }
+
+  /**
+   * 处理图片双击，在适屏与原始大小之间切换
+   */
+  private _onDblClick = (e: MouseEvent) => {
+    const targetScale =
+      this.scale > this.fitScale * 1.05 ? this.fitScale : Math.max(this.fitScale, 1)
+    this._zoomAt(e.clientX, e.clientY, targetScale)
+  }
+
+  /**
+   * 点击空白遮罩区域关闭全屏
+   */
+  private _onBackdropClick(e: MouseEvent) {
+    if (e.target === e.currentTarget) {
+      this._onClose()
+    }
   }
 
   /**
@@ -300,6 +405,7 @@ export class PeekFullscreen extends LitElement {
 
     // 如果是视频，保存原始位置信息
     if (this.media instanceof HTMLVideoElement) {
+      this.originalVideoControls = this.media.controls
       this.originalVideoParent = this.media.parentElement
       this.originalVideoNextSibling = this.media.nextSibling
       this.mediaWrapper = document.createElement('div')
@@ -356,6 +462,9 @@ export class PeekFullscreen extends LitElement {
       if (wasPlaying) {
         this.media.pause()
       }
+
+      // 恢复视频控件原始状态
+      this.media.controls = this.originalVideoControls
 
       // 恢复到原始位置
       if (this.originalVideoParent) {
@@ -433,9 +542,18 @@ export class PeekFullscreen extends LitElement {
 
     return html`
       <div class="close" @click=${this._onClose}>×</div>
-      <div class="media-container" @wheel=${this._handleWheel}>
+      <div class="media-container" @wheel=${this._handleWheel} @click=${this._onBackdropClick}>
         ${this.media instanceof HTMLImageElement
-          ? html`<img src="${this.media.src}" alt="${this.media.alt}" />`
+          ? html`<img
+              src="${this.media.src}"
+              alt="${this.media.alt}"
+              draggable="false"
+              @pointerdown=${this._onPointerDown}
+              @pointermove=${this._onPointerMove}
+              @pointerup=${this._onPointerUp}
+              @pointercancel=${this._onPointerUp}
+              @dblclick=${this._onDblClick}
+            />`
           : ''}
       </div>
     `

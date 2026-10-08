@@ -13,6 +13,7 @@ export class PeekManager extends EventTarget {
   private hideTimeout: number | null = null
   private readonly updateToolbarPosition: (media: HTMLElement) => void
   private readonly MIN_MEDIA_SIZE = 100 // 最小媒体尺寸
+  private fullscreenActive = false // 是否处于全屏查看状态
 
   constructor() {
     super()
@@ -22,6 +23,14 @@ export class PeekManager extends EventTarget {
       const rect = media.getBoundingClientRect()
       this.toolbar.updatePosition(rect)
     }, 30)
+
+    // 监听全屏状态变化，全屏时暂停悬浮预览逻辑
+    document.addEventListener('peek-fullscreen-change', e => {
+      this.fullscreenActive = (e as CustomEvent).detail.active
+      if (this.fullscreenActive) {
+        this.handleMediaLeave()
+      }
+    })
 
     this.initEventListeners()
   }
@@ -79,6 +88,9 @@ export class PeekManager extends EventTarget {
   private initEventListeners() {
     // 使用节流函数处理鼠标移动
     const handleMouseMove = createThrottledFunction((e: MouseEvent) => {
+      // 全屏查看时暂停悬浮预览逻辑
+      if (this.fullscreenActive) return
+
       // 获取鼠标位置下的所有元素
       const elements = document.elementsFromPoint(e.clientX, e.clientY)
       const targetMedia = this.findTargetMedia(elements)
@@ -120,23 +132,9 @@ export class PeekManager extends EventTarget {
       this.updateToolbarPosition(this.currentMedia)
     }, 60) // 60ms 的节流时间，因为视口变化不需要太频繁的更新
 
-    // 监听滚动和窗口大小变化
-    window.addEventListener('scroll', handleViewportChange, { passive: true })
+    // 监听滚动和窗口大小变化（capture 捕获内部滚动容器的滚动）
+    window.addEventListener('scroll', handleViewportChange, { capture: true, passive: true })
     window.addEventListener('resize', handleViewportChange)
-  }
-
-  /**
-   * 判断是否为媒体元素
-   */
-  private isMediaElement(element: HTMLElement): boolean {
-    if (element instanceof HTMLImageElement) {
-      return true
-    }
-    if (element instanceof HTMLVideoElement) {
-      // 检查视频是否有效
-      return element.readyState > 0 && element.videoWidth > 0 && element.videoHeight > 0
-    }
-    return false
   }
 
   /**

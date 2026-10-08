@@ -42,17 +42,15 @@
 - 🎥 防止视频在切换标签页时自动暂停
 - 🔄 模拟页面始终处于焦点状态
 - 🎯 适用于在线课程等视频网站
-<!--
+### 🎬 媒体与界面增强
 
-### 🎬 视频相关插件
+#### [peek-media](./packages/peek-media/)
 
-#### [video-fullscreen](./packages/video-fullscreen/)
+**媒体悬浮预览** - 悬浮预览页面中的图片和视频（Lit + Tailwind，开发中）
 
-**视频全屏增强工具** - 为网页中的视频元素添加全屏功能增强
+#### [beautify-docmost](./packages/beautify-docmost/)
 
-- 🎥 为任意视频元素添加全屏按钮
-- 🎯 智能定位全屏按钮
-- 🔄 响应式适配视频尺寸变化
+**Docmost 界面美化** - 优化 Docmost 界面样式
 
 ### 🌐 网络相关插件
 
@@ -64,17 +62,11 @@
 - ✏️ 重写请求参数
 - 📊 请求监控和调试
 
-### 🎨 UI 组件模板
+### 🧪 开发中
 
-#### [media-peek](./packages/media-peek/)
-
-**React + Vite + TypeScript 模板** - 基于 shadcn/ui 的现代化 UI 组件模板
-
-- ⚛️ React + TypeScript
-- ⚡ Vite 构建工具
-- 🎨 Tailwind CSS + shadcn/ui
-- 🔧 ESLint + Prettier
-- 📱 响应式设计 -->
+- [bilibili-video-note-export-v2](./packages/bilibili-video-note-export-v2/) - 使用 React 重构的 B 站笔记导出工具
+- [scrollbar-pin](./packages/scrollbar-pin/) - 仅有技术设计文档（[tech.md](./packages/scrollbar-pin/tech.md)）
+- [@tampermonkey-scripts/utils](./packages/utils/) - 各脚本共用的工具库（非脚本）
 
 ## 🚀 快速开始
 
@@ -101,33 +93,40 @@ pnpm dev
 
 # 构建
 pnpm build
+
+# 全部 TS 包类型检查（根目录运行）
+pnpm typecheck
+
+# 新建脚本（模板：js | lit | vue | react）
+pnpm new <name> --template <template>
 ```
 
 ## 🛠️ 技术栈
 
-- **构建工具**: Vite
-- **包管理器**: pnpm
+- **构建工具**: Vite + [vite-plugin-monkey](https://github.com/nicepkg/vite-plugin-monkey)
+- **包管理器**: pnpm（workspace monorepo）
 - **语言**: TypeScript / JavaScript
-- **样式**: Tailwind CSS
-- **UI 组件**: shadcn/ui (部分插件)
-- **代码规范**: ESLint + Prettier
+- **样式**: Tailwind CSS（部分插件）
+- **代码规范**: Prettier
 
 ## 📁 项目结构
 
 ```
 tampermonkey-scripts/
-├── packages/                    # 插件目录
-│   ├── bilibili-video-note-export/    # B 站笔记导出
-│   ├── bilibili-comment-ip/           # B 站评论 IP 显示
-│   ├── bilibili-release-date/         # B 站发布日期显示
-│   ├── video-fullscreen/              # 视频全屏增强
-│   ├── rewrite-fetch-or-xhr/          # 网络请求重写
-│   └── media-peek/                    # React UI 模板
-├── templates/                  # 模板目录
-│   ├── js/                     # JavaScript 模板
-│   ├── react/                  # React 模板
-│   └── vue/                    # Vue 模板
-└── README.md                   # 项目说明
+├── packages/                        # 插件目录
+│   ├── bilibili-video-note-export/  # B 站笔记导出
+│   ├── bilibili-video-note-export-v2/ # B 站笔记导出（React 重构，开发中）
+│   ├── bilibili-comment-ip/         # B 站评论 IP 显示
+│   ├── bilibili-release-date/       # B 站发布日期显示
+│   ├── bilibili-online-rank/        # B 站在线人数排名入口
+│   ├── play-video-when-blur/        # 失焦时视频继续播放
+│   ├── peek-media/                  # 媒体悬浮预览（开发中）
+│   ├── rewrite-fetch-or-xhr/        # 网络请求重写
+│   ├── beautify-docmost/            # Docmost 界面美化
+│   ├── scrollbar-pin/               # 设计文档
+│   └── utils/                       # 共享工具库
+├── templates/                       # 新脚本模板（js / lit / vue / react）
+└── scripts/                         # 脚手架脚本
 ```
 
 ## 🤝 贡献指南

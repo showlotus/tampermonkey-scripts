@@ -24,11 +24,12 @@ export class PeekToolbar extends LitElement {
       border-radius: 4px;
       opacity: 0;
       transition: opacity 0.2s;
-      pointer-events: auto;
+      pointer-events: none;
     }
 
     :host([visible]) {
       opacity: 1;
+      pointer-events: auto;
     }
 
     .icon {
@@ -65,8 +66,8 @@ export class PeekToolbar extends LitElement {
           />
         </svg>
       </div>
+      ${this.mediaType === 'video' ? this._renderVideoControls() : ''}
     `
-    // ${this.mediaType === 'video' ? this._renderVideoControls() : ''}
   }
 
   private _renderVideoControls() {
@@ -96,7 +97,8 @@ export class PeekToolbar extends LitElement {
   /**
    * 更新工具栏位置
    */
-  updatePosition(rect: DOMRect) {
+  async updatePosition(rect: DOMRect) {
+    await this.updateComplete
     const padding = 8
     this.style.top = `${rect.top + padding}px`
     this.style.left = `${rect.right - this.offsetWidth - padding}px`
