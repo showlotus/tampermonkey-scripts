@@ -11,13 +11,14 @@ Tampermonkey 用户脚本集合，pnpm monorepo（workspace = `packages/*` + `te
 
 ```bash
 pnpm install                                # 根目录安装（含全部 workspace 包）
-pnpm new <name> --template <js|lit|vue|react>   # 新建脚本（唯一的根命令）
 pnpm typecheck                              # 全部 TS 包类型检查
 
 cd packages/<name>
 pnpm dev      # Vite 构建类脚本：启动 dev server，产出可安装的 userscript URL
 pnpm build    # peek-media 还会先生成 tailwind CSS
 ```
+
+新建脚本用 `new-script` skill（对话式收集名称与模板，底层执行 `node scripts/createNewScript.js <name> --template <js|lit|vue|react>`），`pnpm new` 命令已移除。
 
 ## 仓库特有的坑
 

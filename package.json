@@ -4,7 +4,6 @@
   "description": "Some Tampermonkey Scripts",
   "main": "index.js",
   "scripts": {
-    "new": "node scripts/createNewScript.js",
     "typecheck": "pnpm -r run typecheck"
   },
   "keywords": [
@@ -12,11 +11,5 @@
     "scripts"
   ],
   "author": "showlotus",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/fs-extra": "^11.0.4",
-    "degit": "^2.8.4",
-    "fs-extra": "^11.3.0",
-    "plop": "^4.0.1"
-  }
+  "license": "MIT"
 }

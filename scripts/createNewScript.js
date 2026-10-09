@@ -2,7 +2,7 @@
 
 const { execSync } = require('child_process')
 const path = require('path')
-const fs = require('fs-extra')
+const fs = require('fs')
 
 // 解析命令行参数
 const args = process.argv.slice(2)
@@ -52,7 +52,8 @@ if (fs.existsSync(targetDir)) {
 
 // 复制模板到目标目录
 console.log(`📦 正在从 ${templateType} 模板创建新项目 ${scriptName}...`)
-fs.copySync(templateDir, targetDir, {
+fs.cpSync(templateDir, targetDir, {
+  recursive: true,
   filter: src => {
     // 排除 node_modules 和其他不需要的文件
     const relativePath = path.relative(templateDir, src)
@@ -70,9 +71,9 @@ const templateName = `tampermonkey-scripts-template-${templateType}`
 // 更新 package.json
 const packageJsonPath = path.join(targetDir, 'package.json')
 if (fs.existsSync(packageJsonPath)) {
-  const packageJson = fs.readJsonSync(packageJsonPath)
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
   packageJson.name = scriptName
-  fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 })
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
   console.log('✅ 已更新 package.json')
 }
 

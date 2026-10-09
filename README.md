@@ -96,10 +96,11 @@ pnpm build
 
 # 全部 TS 包类型检查（根目录运行）
 pnpm typecheck
-
-# 新建脚本（模板：js | lit | vue | react）
-pnpm new <name> --template <template>
 ```
+
+### 新建脚本
+
+在 OpenCode 对话中直接说「帮我新建一个 xxx 脚本」，agent 会通过 `new-script` skill 询问脚本名与模板（js | lit | vue | react）并完成创建，也可用 `@new-script` 显式调用。底层执行 `node scripts/createNewScript.js <name> --template <template>`。
 
 ## 🛠️ 技术栈
 
