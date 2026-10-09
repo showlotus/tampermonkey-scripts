@@ -1,19 +1,11 @@
 import { GM_registerMenuCommand, GM_setClipboard } from '$'
 import { findSiteConfig, type SiteConfig } from './config'
 import { getImageData, recognize, fillInput } from './ocr'
-import {
-  getAutoCopy,
-  getAutoSubmit,
-  showSettingsDialog,
-  toggleAutoCopy,
-  toggleAutoSubmit
-} from './settings'
+import { getAutoCopy, getAutoSubmit, showSettingsDialog } from './settings'
 import { injectButton, setBtnState, showToast } from './ui'
 import './style.css'
 
-GM_registerMenuCommand('🔑 设置 AI 模型与 API Key', showSettingsDialog)
-GM_registerMenuCommand('📋 切换自动复制', toggleAutoCopy)
-GM_registerMenuCommand('🎯 切换自动提交', toggleAutoSubmit)
+GM_registerMenuCommand('设置', showSettingsDialog)
 
 async function recognizeAndApply(
   captchaEl: HTMLElement,

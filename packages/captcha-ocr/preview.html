@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>captcha-ocr 预览</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        color: #1f2330;
+        background:
+          radial-gradient(600px 400px at 15% 20%, rgba(255, 184, 108, 0.4), transparent),
+          radial-gradient(500px 500px at 85% 25%, rgba(124, 108, 247, 0.4), transparent),
+          radial-gradient(700px 500px at 50% 90%, rgba(52, 199, 89, 0.33), transparent),
+          linear-gradient(160deg, #eef1ff, #fdeef5);
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0;
+      }
+      p {
+        margin: 0;
+        font-size: 13px;
+        opacity: 0.65;
+      }
+      .toolbar button {
+        padding: 9px 22px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        background: linear-gradient(135deg, #5b7cfa, #7c6cf7);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(100, 110, 250, 0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>captcha-ocr UI 预览</h1>
+    <p>本地开发预览页（GM API 已 mock），生产环境请通过油猴安装脚本。</p>
+    <img
+      id="demo-captcha"
+      alt="演示验证码"
+      src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='44'%3E%3Crect width='120' height='44' rx='4' fill='%23eef2ff'/%3E%3Ctext x='60' y='30' font-size='24' font-family='monospace' text-anchor='middle' fill='%23334155'%3E7K4M%3C/text%3E%3C/svg%3E"
+    />
+    <div class="toolbar">
+      <button id="open-settings">打开设置</button>
+    </div>
+    <script type="module" src="/src/preview.ts"></script>
+  </body>
+</html>

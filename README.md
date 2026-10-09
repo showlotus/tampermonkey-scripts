@@ -42,15 +42,12 @@
 - 🎥 防止视频在切换标签页时自动暂停
 - 🔄 模拟页面始终处于焦点状态
 - 🎯 适用于在线课程等视频网站
+
 ### 🎬 媒体与界面增强
 
 #### [peek-media](./packages/peek-media/)
 
 **媒体悬浮预览** - 悬浮预览页面中的图片和视频（Lit + Tailwind，开发中）
-
-#### [beautify-docmost](./packages/beautify-docmost/)
-
-**Docmost 界面美化** - 优化 Docmost 界面样式
 
 ### 🌐 网络相关插件
 
@@ -101,6 +98,33 @@ pnpm typecheck
 ### 新建脚本
 
 在 OpenCode 对话中直接说「帮我新建一个 xxx 脚本」，agent 会通过 `new-script` skill 询问脚本名与模板（js | lit | vue | react）并完成创建，也可用 `@new-script` 显式调用。底层执行 `node scripts/createNewScript.js <name> --template <template>`。
+
+### 发布到 Greasy Fork
+
+Vite 构建类脚本通过 tag 触发 CI（`.github/workflows/publish-greasyfork.yml`）自动发布：
+
+1. 修改 `packages/<包名>/package.json` 的 `version`
+2. 打 tag 并推送：`git tag <包名>-v<版本> && git push origin <包名>-v<版本>`（如 `captcha-ocr-v1.0.1`）
+3. CI 自动构建，并把产物 `<包名>.user.js` 推送到 `greasyfork` 分支（多脚本产物共存，互不影响）
+
+首次发布需在 Greasy Fork 手动完成两步配置：
+
+**1. 导入脚本**（必做）：登录 [greasyfork.org](https://greasyfork.org/zh-CN/import) →「将新脚本导入到 Greasy Fork」，填入 raw URL，同步方式选「自动」：
+
+```
+https://raw.githubusercontent.com/showlotus/tampermonkey-scripts/greasyfork/<包名>.user.js
+```
+
+> 注意：「自动」同步是每天定期拉取，更新延迟最多 24 小时。
+
+**2. 配置 webhook**（推荐，实现即时更新）：Greasy Fork 的「自动同步」和「webhook」是两个独立机制。在 Greasy Fork 用户面板的 webhook 说明页生成 secret（⚠️ 只显示一次），再到 GitHub 仓库 Settings → Webhooks → Add webhook：
+
+- Payload URL：Greasy Fork 提供的地址（形如 `https://greasyfork.org/users/<ID>-<用户名>/webhook`）
+- Content type：`application/json`
+- Secret：Greasy Fork 生成的 key
+- 触发事件：**Just the push event**
+
+配置后每次打 tag 推送，脚本约 5~10 分钟内自动更新（GitHub raw 有 5 分钟缓存），脚本同步类型会自动变为「Webhook」并停止 24 小时定期拉取。
 
 ## 🛠️ 技术栈
 

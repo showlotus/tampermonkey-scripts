@@ -85,7 +85,7 @@ function openaiCompatible(opts: OpenAiCompatibleOptions): OcrProvider {
 
 const claudeProvider: OcrProvider = {
   id: 'claude',
-  label: 'Anthropic Claude',
+  label: 'Claude',
   models: ['claude-sonnet-4-5', 'claude-haiku-4-5', 'claude-3-5-sonnet-latest'],
   defaultModel: 'claude-sonnet-4-5',
   buildRequest(apiKey, model, imageUrl) {
@@ -124,7 +124,7 @@ const claudeProvider: OcrProvider = {
 
 const geminiProvider: OcrProvider = {
   id: 'gemini',
-  label: 'Google Gemini',
+  label: 'Gemini',
   models: ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.5-pro'],
   defaultModel: 'gemini-2.0-flash',
   buildRequest(apiKey, model, imageUrl) {
@@ -161,7 +161,7 @@ const geminiProvider: OcrProvider = {
 export const PROVIDERS: OcrProvider[] = [
   openaiCompatible({
     id: 'zhipu',
-    label: '智谱 AI（免费）',
+    label: 'Zhipu AI',
     getBaseURL: () => 'https://open.bigmodel.cn/api/paas/v4',
     models: ['glm-4v-flash', 'glm-4.6v', 'glm-4.5v', 'glm-4v-plus'],
     defaultModel: 'glm-4v-flash'
@@ -175,28 +175,28 @@ export const PROVIDERS: OcrProvider[] = [
   }),
   openaiCompatible({
     id: 'moonshot',
-    label: 'Kimi (Moonshot)',
+    label: 'Moonshot',
     getBaseURL: () => 'https://api.moonshot.cn/v1',
     models: ['kimi-latest', 'moonshot-v1-8k-vision-preview'],
     defaultModel: 'kimi-latest'
   }),
   openaiCompatible({
     id: 'qwen',
-    label: '通义千问',
+    label: 'Qwen',
     getBaseURL: () => 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     models: ['qwen-vl-plus', 'qwen-vl-max', 'qwen3-vl-plus'],
     defaultModel: 'qwen-vl-plus'
   }),
   openaiCompatible({
     id: 'doubao',
-    label: '豆包 (火山方舟)',
+    label: 'Doubao',
     getBaseURL: () => 'https://ark.cn-beijing.volces.com/api/v3',
     models: ['doubao-seed-1.6-vision-250815', 'doubao-1.5-vision-pro-32k'],
     defaultModel: 'doubao-seed-1.6-vision-250815'
   }),
   openaiCompatible({
     id: 'siliconflow',
-    label: 'SiliconFlow 硅基流动',
+    label: 'SiliconFlow',
     getBaseURL: () => 'https://api.siliconflow.cn/v1',
     models: ['Qwen/Qwen2.5-VL-32B-Instruct', 'Qwen/Qwen3-VL-8B-Instruct'],
     defaultModel: 'Qwen/Qwen2.5-VL-32B-Instruct'
@@ -212,7 +212,7 @@ export const PROVIDERS: OcrProvider[] = [
   geminiProvider,
   openaiCompatible({
     id: 'grok',
-    label: 'xAI Grok',
+    label: 'Grok',
     getBaseURL: () => 'https://api.x.ai/v1',
     models: ['grok-2-vision-1212', 'grok-4'],
     defaultModel: 'grok-2-vision-1212'
@@ -226,7 +226,7 @@ export const PROVIDERS: OcrProvider[] = [
   }),
   openaiCompatible({
     id: 'openrouter',
-    label: 'OpenRouter（聚合）',
+    label: 'OpenRouter',
     getBaseURL: () => 'https://openrouter.ai/api/v1',
     models: [
       'google/gemini-2.0-flash-exp:free',
@@ -237,7 +237,7 @@ export const PROVIDERS: OcrProvider[] = [
   }),
   openaiCompatible({
     id: 'custom',
-    label: '自定义（OpenAI 兼容）',
+    label: 'Custom (OpenAI Compatible)',
     getBaseURL: () => GM_getValue<string>('customBaseURL', '').replace(/\/+$/, ''),
     models: [],
     defaultModel: ''

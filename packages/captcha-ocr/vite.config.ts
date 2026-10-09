@@ -7,16 +7,12 @@ export default defineConfig({
     monkey({
       entry: 'src/main.ts',
       userscript: {
-        name: 'CAPTCHA OCR (Zhipu AI)',
+        name: '自动识别验证码',
         namespace: 'captcha-ocr',
-        description: '自动识别验证码图片，支持多家 AI 视觉模型，自动填充与提交',
-        icon: 'https://wap.lotsmall.cn/favicon.ico',
-        author: 'xu.yao',
-        match: [
-          'https://itestuser.sendinfo.com.cn/*',
-          'https://itestwap.sendinfo.com.cn/*',
-          'http://localhost/*'
-        ],
+        description:
+          '自动识别验证码图片，支持多家 AI 视觉模型，自动填充与提交。需先在设置中配置目标站点',
+        author: 'showlotus',
+        match: ['*://*/*'],
         grant: [
           'GM_xmlhttpRequest',
           'GM_getValue',
