@@ -1,0 +1,213 @@
+/* 验证码元素包裹容器（img/canvas 等自闭合标签） */
+.cap-rec-wrap {
+  position: relative !important;
+  display: inline-flex !important;
+  line-height: 0 !important;
+  margin-right: 38px !important;
+  border-radius: 2px !important;
+}
+.cap-rec-wrap > img,
+.cap-rec-wrap > canvas {
+  position: static !important;
+  margin: 0 !important;
+  display: block !important;
+  border: 2px solid #4a6cf7 !important;
+  border-radius: 2px 0 0 2px !important;
+  transition: border-color 0.2s ease !important;
+}
+.cap-rec-wrap:has(.loading) > img,
+.cap-rec-wrap:has(.loading) > canvas {
+  border-color: #f59e0b !important;
+}
+.cap-rec-wrap:has(.success) > img,
+.cap-rec-wrap:has(.success) > canvas {
+  border-color: #22c55e !important;
+}
+.cap-rec-wrap:has(.error) > img,
+.cap-rec-wrap:has(.error) > canvas {
+  border-color: #ef4444 !important;
+}
+
+/* 侧贴式识别按钮 */
+.cap-rec-btn {
+  position: absolute !important;
+  right: -29px !important;
+  top: 0 !important;
+  width: 30px !important;
+  min-height: 30px !important;
+  background: #4a6cf7 !important;
+  border: none !important;
+  border-radius: 0 2px 2px 0 !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
+  transition: background 0.2s ease !important;
+  font-family: sans-serif !important;
+}
+.cap-rec-btn .cap-rec-icon {
+  display: block !important;
+}
+.cap-rec-btn.loading {
+  background: #f59e0b !important;
+  pointer-events: none !important;
+}
+.cap-rec-spinning {
+  animation: cap-rec-spin 0.7s linear infinite !important;
+}
+.cap-rec-btn.success {
+  background: #22c55e !important;
+}
+.cap-rec-btn.error {
+  background: #ef4444 !important;
+}
+@keyframes cap-rec-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Toast 通知 */
+.cap-rec-toast {
+  position: fixed !important;
+  top: 16px !important;
+  right: 16px !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 2147483647 !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  font-family: sans-serif !important;
+  color: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  transform: translateX(0) !important;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease !important;
+  max-width: 300px !important;
+  word-break: break-all !important;
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  border: none !important;
+}
+.cap-rec-toast.success {
+  background: #22c55e !important;
+}
+.cap-rec-toast.error {
+  background: #ef4444 !important;
+}
+.cap-rec-toast.info {
+  background: #60a5fa !important;
+}
+
+/* 设置弹窗 */
+.cap-rec-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cap-rec-card {
+  background: #2d3436;
+  border-radius: 12px;
+  padding: 24px;
+  width: 340px;
+  color: #e6e9f2;
+  font-family: sans-serif;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.cap-rec-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.cap-rec-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.cap-rec-field-label {
+  font-size: 12px;
+  color: rgba(230, 233, 242, 0.6);
+}
+.cap-rec-card input,
+.cap-rec-card select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #12131a;
+  color: #e6e9f2;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+.cap-rec-model-row {
+  display: flex;
+  gap: 8px;
+}
+.cap-rec-model-row input {
+  flex: 1;
+}
+.cap-rec-model-row button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: #e6e9f2;
+  cursor: pointer;
+  font-size: 13px;
+}
+.cap-rec-model-row button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.cap-rec-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.cap-rec-card .cap-rec-field .cap-rec-check {
+  margin-top: 6px;
+}
+.cap-rec-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+.cap-rec-actions button {
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.cap-rec-actions #cap-rec-cancel {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: #e6e9f2;
+}
+.cap-rec-actions #cap-rec-save {
+  border: none;
+  background: #6c5ce7;
+  color: #fff;
+}
